@@ -1,0 +1,26 @@
+curl --location 'https://public-api.sandbox.bunq.com/v1/user/1879691/monetary-account/2106783/request-inquiry' \
+--header 'Content-Type: application/json' \
+--header 'Cache-Control: no-cache' \
+--header 'User-Agent: postman' \
+--header 'X-Bunq-Language: en_US' \
+--header 'X-Bunq-Region: nl_NL' \
+--header 'X-Bunq-Client-Request-Id: 2FKbV7dWlmqaiZdY6-hI' \
+--header 'X-Bunq-Geolocation: 0 0 0 0 000' \
+--header 'X-Bunq-Client-Authentication: a943b2c41a46e7d528371a698347558c3c457688fbb16b0fef472cfe9b894ccf' \
+--header 'X-Bunq-Client-Signature: Fjy8BUeYXYxscw+JglqFt9Zut/QZ8eJAdttvQuEr8UW4bkUKHUZnnY9JQIiWINRHwRNsI3Im5tYHmZweJoJJJkqKrhSLMOYwY7QSJHOer6PEBK/soZnZErYXjS6q9Xwy8VFaDpf6Y1Vn6IT37Z2iS51q0qLkiLsg9/URVeOUMZhJ4ljc9ugH4TRdaG7bqghdU0qGW8miA/IoqxUK1VR5sq2GP7dqS5HexEZfKpSlFKMRGoLxNXEqAEajfgXkJVyAFLcQqnIlEGOxwLXBSVAh35SHGsgT7+5usrl8fcIe3IIShy9Itv+TuqXboI4ausJ5pA8+MbQuniTKBvkJ7+hTxw==' \
+--data-raw '{
+	"amount_inquired": {
+    "value": "500",
+    "currency": "EUR"
+  },
+  "counterparty_alias": {
+      "type": "EMAIL",
+      "value": "sugardaddy@bunq.com",
+      "name": "Sugar Daddy"
+  },
+  "description": "You'\''re the best!",
+  "allow_bunqme": false
+}'
+
+Monetary_account_id:2106783
+user_id:1879691
