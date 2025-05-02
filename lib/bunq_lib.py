@@ -114,9 +114,9 @@ class BunqClient:
 
         print(f"bunq - Session Token: {self.session_token}")
         print(f"bunq - User ID: {self.user_id}")
-        
 
     def request(self, endpoint: str, method: str = "GET", data: dict = None):
+
         url = f"{self.base_url}/user/{self.user_id}/{endpoint}"
         print(f"[DEBUG] bunq - Requesting: {method} {url}")
 
