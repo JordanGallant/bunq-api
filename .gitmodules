@@ -1,0 +1,3 @@
+[submodule "client1"]
+	path = client1
+	url = https://github.com/JordanGallant/bunq-client.git
