@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Response
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Response, Body
 from fastapi.responses import StreamingResponse
 from lib.bunq_lib import BunqClient
 from dotenv import load_dotenv
