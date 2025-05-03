@@ -177,7 +177,7 @@ async def face_swap(
 
         if balance_value > 25000:
             base_image_url = "https://i.ibb.co/tM6X9T81/8640671.jpg"
-        elif balance_value < 24000 :
+        elif balance_value < 24000:
             base_image_url = "https://i.ibb.co/s938KWxH/angry-old-man-shouting.jpg"
         else:
             base_image_url = "https://default-image-url.com/image.jpg"  # Optional middle case
