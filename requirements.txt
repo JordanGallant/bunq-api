@@ -3,3 +3,4 @@ requests
 cryptography
 dotenv
 replicate
+uvicorn
