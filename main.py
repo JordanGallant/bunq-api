@@ -93,12 +93,16 @@ def get_cards():
     response = client.request(endpoint='card', method='GET', data={})
     return response
 
-@app.get("/payment") #make a payment from us to a hardcoded iban
-async def payment(monetary_account_id: str = Depends(get_primary_monetary_account_id)):
+@app.post("/payment")
+async def payment(
+    amount: str = Body(...),
+    iban: str = Body(...),
+    monetary_account_id: str = Depends(get_primary_monetary_account_id)
+):
     client = get_bunq_client()
     payment = client.create_payment(
-        amount='100', 
-        recipient_iban='NL52BUNQ2090679123',
+        amount=amount,
+        recipient_iban=iban,
         currency='EUR',
         from_monetary_account_id=monetary_account_id,
         description='test'
