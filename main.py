@@ -97,8 +97,8 @@ def get_cards():
 async def payment(monetary_account_id: str = Depends(get_primary_monetary_account_id)):
     client = get_bunq_client()
     payment = client.create_payment(
-        amount='0.10', 
-        recipient_iban='NL14RABO0169202917',
+        amount='100', 
+        recipient_iban='NL52BUNQ2090679123',
         currency='EUR',
         from_monetary_account_id=monetary_account_id,
         description='test'
