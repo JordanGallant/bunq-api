@@ -31,6 +31,22 @@ def get_bunq_client():
     client.create_session()
     return client
 
+def fetch_account_balance(monetary_account_id: str):
+    client = get_bunq_client()
+    endpoint = f"monetary-account/{monetary_account_id}"
+    response = client.request(endpoint=endpoint, method='GET', data=None)
+
+    try:
+        account_data = response.get('Response', [])[0].get('MonetaryAccountBank', {})
+        balance = account_data.get('balance', {})
+        return {
+            "value": balance.get('value'),
+            "currency": balance.get('currency')
+        }
+    except (IndexError, KeyError):
+        raise HTTPException(status_code=500, detail="Could not extract balance information")
+
+
 async def get_primary_monetary_account_id() -> str: # function to internlly get monetary id
     client = get_bunq_client()
     response = client.request(endpoint='monetary-account', method='GET', data={})
@@ -103,21 +119,9 @@ async def get_account_details(monetary_account_id: str = Depends(get_primary_mon
     response = client.request(endpoint=endpoint, method='GET', data=None)
     return response
 
-@app.get("/account_balance") #just balance
+@app.get("/account_balance")
 async def get_account_balance(monetary_account_id: str = Depends(get_primary_monetary_account_id)):
-    client = get_bunq_client()
-    endpoint = f"monetary-account/{monetary_account_id}"
-    response = client.request(endpoint=endpoint, method='GET', data=None)
-    
-    try:
-        account_data = response.get('Response', [])[0].get('MonetaryAccountBank', {})
-        balance = account_data.get('balance', {})
-        return {
-            "value": balance.get('value'),
-            "currency": balance.get('currency')
-        }
-    except (IndexError, KeyError):
-        raise HTTPException(status_code=500, detail="Could not extract balance information")
+    return fetch_account_balance(monetary_account_id)
 
 # New function to upload file to a temporary URL for Replicate
 async def upload_to_temp_url(file_data: bytes) -> str:
@@ -144,82 +148,64 @@ async def upload_to_temp_url(file_data: bytes) -> str:
 @app.post("/face_swap")
 async def face_swap(
     file: UploadFile = File(...),
+    monetary_account_id: str = Depends(get_primary_monetary_account_id)
 ):
     try:
-        # Enhanced logging for debugging
         print(f"Received file: {file.filename}, size: {file.size}, content_type: {file.content_type}")
-        
-        # Check API key first - most common issue
+
         if not REPLICATE_API_KEY:
-            print("ERROR: Replicate API key not configured")
             raise HTTPException(status_code=500, detail="Replicate API key not configured")
-            
-        # Set API key for replicate
+
         os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_KEY
-        
-        # Read uploaded file
         swap_face_content = await file.read()
-        print(f"Read {len(swap_face_content)} bytes from uploaded file")
-        
+
         try:
-            # Try to upload to temporary URL
             swap_face_url = await upload_to_temp_url(swap_face_content)
-            print(f"Uploaded to temporary URL: {swap_face_url}")
         except Exception as upload_error:
-            print(f"Error uploading to temporary URL: {str(upload_error)}")
             raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(upload_error)}")
-        
-        # Direct image URL - using a known working image for testing
-        base_image_url = "https://i.ibb.co/s938KWxH/angry-old-man-shouting.jpg"
-        
-        # Call Replicate API
+
+        # 🔽 Get balance and set base image accordingly
+        balance_info = fetch_account_balance(monetary_account_id)
+        try:
+            balance_value = float(balance_info["value"])
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=500, detail="Invalid balance value")
+
+        if balance_value > 1000:
+            base_image_url = "https://i.ibb.co/tM6X9T81/8640671.jpg"
+        elif balance_value < 100:
+            base_image_url = "https://i.ibb.co/s938KWxH/angry-old-man-shouting.jpg"
+        else:
+            base_image_url = "https://default-image-url.com/image.jpg"  # Optional middle case
+
         input_data = {
             "swap_image": swap_face_url,
             "input_image": base_image_url
         }
-        
-        print(f"Calling Replicate API with input: {input_data}")
-        
+
         try:
             output = replicate.run(
                 "cdingram/face-swap:d1d6ea8c8be89d664a07a457526f7128109dee7030fdac424788d762c71ed111",
                 input=input_data
             )
-            print(f"Replicate API response: {output}")
         except Exception as replicate_error:
-            print(f"Replicate API error: {str(replicate_error)}")
             raise HTTPException(status_code=500, detail=f"Replicate API error: {str(replicate_error)}")
-        
-        # Download the result image
+
         if not output:
-            print("No output from Replicate API")
             raise HTTPException(status_code=500, detail="Face swap processing failed - no output")
-        
+
         try:
-            # The output from this model is a URL to the processed image
             async with httpx.AsyncClient() as client:
-                print(f"Downloading result from: {output}")
                 response = await client.get(output.url)
-                print(f"Downloading result from: {output.url}")
-                print(f"Download response status: {response.status_code}")
-                
                 if response.status_code != 200:
-                    print(f"Error downloading result: {response.text}")
                     raise HTTPException(status_code=500, detail="Failed to retrieve processed image")
-                    
                 image_data = response.content
-                print(f"Downloaded {len(image_data)} bytes of image data")
         except Exception as download_error:
-            print(f"Error downloading result: {str(download_error)}")
             raise HTTPException(status_code=500, detail=f"Failed to download result: {str(download_error)}")
-        
-        # Return the image
-        print("Returning image response")
+
         return StreamingResponse(io.BytesIO(image_data), media_type="image/jpeg")
-        
+
     except Exception as e:
-        # Detailed error logging
         import traceback
-        error_details = traceback.format_exc()
-        print(f"Face swap error: {str(e)}\n{error_details}")
+        print(f"Face swap error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Face swap failed: {str(e)}")
