@@ -50,6 +50,20 @@ async def get_primary_monetary_account_id() -> str: # function to internlly get 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get monetary account: {str(e)}")
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the BunqScript API", 
+            "documentation": "/docs",
+            "available_endpoints": [
+                "/monetary_account",
+                "/get_cards",
+                "/payment",
+                "/transactions",
+                "/account_details",
+                "/account_balance",
+                "/face_swap"
+            ]}
+
 @app.get("/monetary_account")  #gets monetary account id
 def get_monetary_account():
     client = get_bunq_client()
