@@ -51,6 +51,7 @@ async def get_primary_monetary_account_id() -> str: # function to internlly get 
         raise HTTPException(status_code=500, detail=f"Failed to get monetary account: {str(e)}")
 
 @app.get("/")
+@app.head("/") 
 async def root():
     return {"message": "Welcome to the BunqScript API", 
             "documentation": "/docs",
