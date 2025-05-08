@@ -1,4 +1,6 @@
-These are the for running the api of our application built with Fast API
+# MCP Server for an Bunq Ai Agent
+This Api is built with fast api and self authenticates via bunqs sandbox api, there are 4 main steps this includes signing transactions to make payments: https://doc.bunq.com/
+it provides context to our AI agent that, dynamically creates an avatar based off of how much money you have in your account, 
 
 1. Clone the Repository.
 ```bash
